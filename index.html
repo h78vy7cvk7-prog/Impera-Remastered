@@ -1,50 +1,131 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+    <meta charset="UTF-8">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<title>IMPERA REMASTERED</title>
+    <title>IMPERA Remastered</title>
 
-<link rel="stylesheet" href="css/style.css">
-
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-<div id="background"></div>
+    <div class="background"></div>
 
-<header>
+    <main class="menu-screen">
 
-<h1>IMPERA</h1>
+        <section class="hero">
 
-<p>Dünyanın kaderini değiştir.</p>
-</header>
+            <p class="eyebrow">
+                GLOBAL GRAND STRATEGY
+            </p>
 
-<main>
+            <h1>IMPERA</h1>
 
-<div class="menu">
+            <p class="subtitle">
+                Dünyanın kaderini değiştir.
+            </p>
 
-<button id="newGame">Yeni Oyun</button>
+        </section>
 
-<button id="continueGame">Devam Et</button>
+        <section class="menu-panel">
 
-<button id="settings">Ayarlar</button>
+            <button
+                id="newGame"
+                class="menu-button primary"
+            >
+                Yeni Oyun
+            </button>
 
-<button id="credits">Yapımcılar</button>
+            <button
+                id="continueGame"
+                class="menu-button"
+            >
+                Devam Et
+            </button>
 
-</div>
+            <button
+                id="settings"
+                class="menu-button"
+            >
+                Ayarlar
+            </button>
 
-</main>
+            <button
+                id="credits"
+                class="menu-button"
+            >
+                Yapımcılar
+            </button>
 
-<footer>
+        </section>
 
-Version 0.1 Alpha
+        <footer>
+            Alpha 0.1 • Impera Remastered
+        </footer>
 
-</footer>
+    </main>
 
-<script src="js/script.js"></script>
+    <div
+        id="gameModal"
+        class="modal hidden"
+        aria-hidden="true"
+    >
+
+        <div class="modal-card">
+
+            <button
+                id="closeModal"
+                class="close-button"
+                aria-label="Kapat"
+            >
+                ×
+            </button>
+
+            <p class="eyebrow">
+                YENİ OYUN
+            </p>
+
+            <h2>Senaryo Seç</h2>
+
+            <div class="scenario-grid">
+
+                <button
+                    class="scenario-card"
+                    data-scenario="1936"
+                >
+                    <strong>1936</strong>
+                    <span>Savaşın Eşiğinde</span>
+                </button>
+
+                <button
+                    class="scenario-card"
+                    data-scenario="1914"
+                >
+                    <strong>1914</strong>
+                    <span>Büyük Savaş</span>
+                </button>
+
+                <button
+                    class="scenario-card"
+                    data-scenario="modern"
+                >
+                    <strong>Günümüz</strong>
+                    <span>Yeni Dünya Düzeni</span>
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="js/script.js"></script>
 
 </body>
 </html>
