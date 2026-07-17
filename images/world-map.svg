@@ -1,0 +1,31 @@
+<section id="worldScreen" class="world-screen hidden">
+
+    <div class="world-header">
+        <button id="backToMenu">← Ana Menü</button>
+
+        <div>
+            <p class="eyebrow">ÜLKE SEÇİMİ</p>
+            <h2>Dünya Haritası</h2>
+        </div>
+    </div>
+
+    <div class="map-container">
+        <object
+            id="worldMap"
+            type="image/svg+xml"
+            data="images/world-map.svg"
+            aria-label="IMPERA dünya haritası"
+        ></object>
+    </div>
+
+    <aside id="countryPanel" class="country-panel">
+        <p class="eyebrow">SEÇİLEN ÜLKE</p>
+        <h3 id="countryName">Bir ülke seç</h3>
+        <p id="countryCode">Haritadaki ülkelere dokun.</p>
+
+        <button id="startCountry" disabled>
+            Bu Ülkeyle Başla
+        </button>
+    </aside>
+
+</section>
