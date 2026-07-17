@@ -1,31 +1,96 @@
 (() => {
-  'use strict';
-  const modal = document.querySelector('#scenarioModal');
-  const toast = document.querySelector('#toast');
-  const text = document.querySelector('#scenarioText');
-  let selectedYear = '1936';
-  const descriptions = {
-    '1936':'Dünya büyük bir savaşın eşiğinde. Bir ülke seç ve tarihin akışını değiştir.',
-    '1914':'İttifaklar geriliyor, imparatorluklar çarpışmaya hazırlanıyor. Eski düzeni koru ya da yık.',
-    '2026':'Modern dünyanın ekonomik, diplomatik ve askerî dengeleri yeniden kuruluyor.'
-  };
-  function openModal(){ modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); }
-  function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
-  function showToast(message){ toast.textContent=message; toast.classList.add('show'); clearTimeout(showToast.timer); showToast.timer=setTimeout(()=>toast.classList.remove('show'),2200); }
-  document.addEventListener('click', e => {
-    const action = e.target.closest('[data-action]')?.dataset.action;
-    const scenario = e.target.closest('.scenario');
-    if(scenario){
-      document.querySelectorAll('.scenario').forEach(b=>b.classList.remove('active'));
-      scenario.classList.add('active'); selectedYear=scenario.dataset.year; text.textContent=descriptions[selectedYear]; return;
+    "use strict";
+
+    const newGameButton = document.getElementById("newGame");
+    const continueButton = document.getElementById("continueGame");
+    const settingsButton = document.getElementById("settings");
+    const creditsButton = document.getElementById("credits");
+
+    const modal = document.getElementById("gameModal");
+    const closeModalButton = document.getElementById("closeModal");
+
+    const scenarioButtons =
+        document.querySelectorAll(".scenario-card");
+
+    function openModal() {
+        if (!modal) return;
+
+        modal.classList.remove("hidden");
+        modal.setAttribute("aria-hidden", "false");
     }
-    if(action==='new-game') openModal();
-    if(action==='close') closeModal();
-    if(action==='continue') showToast('Henüz kayıtlı oyun bulunmuyor.');
-    if(action==='settings') showToast('Ayarlar ekranı Paket 2’de eklenecek.');
-    if(action==='credits') showToast('IMPERA Remastered — Bilal’in dünya strateji projesi.');
-    if(action==='start') showToast(`${selectedYear} dünya haritası Paket 2’de açılacak.`);
-  });
-  modal.addEventListener('click', e => { if(e.target===modal) closeModal(); });
-  document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+
+    function closeModal() {
+        if (!modal) return;
+
+        modal.classList.add("hidden");
+        modal.setAttribute("aria-hidden", "true");
+    }
+
+    if (newGameButton) {
+        newGameButton.addEventListener("click", openModal);
+    }
+
+    if (closeModalButton) {
+        closeModalButton.addEventListener("click", closeModal);
+    }
+
+    if (continueButton) {
+        continueButton.addEventListener("click", () => {
+            alert("Henüz kayıtlı oyun bulunmuyor.");
+        });
+    }
+
+    if (settingsButton) {
+        settingsButton.addEventListener("click", () => {
+            alert("Ayarlar ekranı yakında eklenecek.");
+        });
+    }
+
+    if (creditsButton) {
+        creditsButton.addEventListener("click", () => {
+            alert(
+                "IMPERA Remastered\nBilal'in dünya strateji projesi."
+            );
+        });
+    }
+
+    scenarioButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            const scenario = button.dataset.scenario;
+
+            if (scenario === "1936") {
+                alert(
+                    "1936: Dünya savaşın eşiğinde."
+                );
+            }
+
+            if (scenario === "1914") {
+                alert(
+                    "1914: Büyük Savaş başlıyor."
+                );
+            }
+
+            if (scenario === "modern") {
+                alert(
+                    "Günümüz: Yeni dünya düzeni."
+                );
+            }
+        });
+    });
+
+    if (modal) {
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+    }
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            closeModal();
+        }
+    });
+
+    closeModal();
 })();
