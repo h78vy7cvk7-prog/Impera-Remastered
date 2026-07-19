@@ -5,15 +5,15 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     >
 
     <meta
         name="description"
-        content="IMPERA Remastered — Tarayıcı tabanlı büyük strateji oyunu"
+        content="IMPERA Remastered — Tarayıcı tabanlı strateji oyunu"
     >
 
-    <meta name="theme-color" content="#070b12">
+    <meta name="theme-color" content="#080b11">
 
     <title>IMPERA Remastered</title>
 
@@ -27,7 +27,7 @@
     <!-- ANA MENÜ -->
     <main
         id="menuScreen"
-        class="menu-screen"
+        class="screen menu-screen"
     >
 
         <section class="hero">
@@ -39,7 +39,7 @@
             <h1>IMPERA</h1>
 
             <p class="subtitle">
-                Dünyanın kaderini değiştir.
+                Bir ülke seç, ekonomini büyüt ve devletini güçlendir.
             </p>
 
         </section>
@@ -86,25 +86,19 @@
 
     </main>
 
-    <!-- SENARYO SEÇİM PENCERESİ -->
+    <!-- SENARYO SEÇİMİ -->
     <div
         id="gameModal"
         class="modal hidden"
         aria-hidden="true"
     >
 
-        <div
-            class="modal-card"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="scenarioTitle"
-        >
+        <div class="modal-card">
 
             <button
                 id="closeModal"
                 class="close-button"
                 type="button"
-                aria-label="Kapat"
             >
                 ×
             </button>
@@ -113,37 +107,35 @@
                 YENİ OYUN
             </p>
 
-            <h2 id="scenarioTitle">
-                Senaryo Seç
-            </h2>
+            <h2>Senaryo Seç</h2>
 
             <div class="scenario-grid">
 
                 <button
                     class="scenario-card"
-                    type="button"
                     data-scenario="1936"
+                    type="button"
                 >
                     <strong>1936</strong>
                     <span>Savaşın Eşiğinde</span>
                 </button>
 
                 <button
-                    class="scenario-card"
+                    class="scenario-card locked"
                     type="button"
-                    data-scenario="1914"
+                    disabled
                 >
                     <strong>1914</strong>
-                    <span>Büyük Savaş</span>
+                    <span>Yakında</span>
                 </button>
 
                 <button
-                    class="scenario-card"
+                    class="scenario-card locked"
                     type="button"
-                    data-scenario="modern"
+                    disabled
                 >
                     <strong>Günümüz</strong>
-                    <span>Yeni Dünya Düzeni</span>
+                    <span>Yakında</span>
                 </button>
 
             </div>
@@ -152,10 +144,10 @@
 
     </div>
 
-    <!-- DÜNYA HARİTASI VE ÜLKE SEÇİMİ -->
+    <!-- ÜLKE SEÇİM EKRANI -->
     <section
         id="worldScreen"
-        class="world-screen hidden"
+        class="screen world-screen hidden"
         aria-hidden="true"
     >
 
@@ -163,23 +155,24 @@
 
             <button
                 id="backToMenu"
-                class="back-button"
+                class="ghost-button"
                 type="button"
             >
                 ← Ana Menü
             </button>
 
-            <div class="world-title">
+            <div>
 
                 <p class="eyebrow">
                     ÜLKE SEÇİMİ
                 </p>
 
-                <h2>
-                    Dünya Haritası
-                </h2>
+                <h2>Dünya Haritası</h2>
 
-                <p id="selectedScenario">
+                <p
+                    id="selectedScenario"
+                    class="muted"
+                >
                     Senaryo: 1936
                 </p>
 
@@ -197,15 +190,12 @@
                     data="images/world-map.svg"
                     aria-label="IMPERA dünya haritası"
                 >
-                    Tarayıcınız SVG dünya haritasını görüntüleyemiyor.
+                    Dünya haritası yüklenemedi.
                 </object>
 
             </div>
 
-            <aside
-                id="countryPanel"
-                class="country-panel"
-            >
+            <aside class="country-panel">
 
                 <p class="eyebrow">
                     SEÇİLEN ÜLKE
@@ -215,37 +205,50 @@
                     Bir ülke seç
                 </h3>
 
-                <p id="countryCode">
-                    Haritadaki ülkelere dokun.
+                <p
+                    id="countryMessage"
+                    class="muted"
+                >
+                    Haritadaki bir ülkeye dokun.
                 </p>
 
                 <div class="country-details">
 
-                    <div class="country-detail-row">
-                        <span>ISO Kodu</span>
+                    <div>
+                        <span>Ülke Kodu</span>
                         <strong id="countryIso">—</strong>
                     </div>
 
-                    <div class="country-detail-row">
-                        <span>Kıta</span>
-                        <strong id="countryContinent">—</strong>
+                    <div>
+                        <span>Başlangıç Hazinesi</span>
+                        <strong id="countryTreasury">—</strong>
                     </div>
 
-                    <div class="country-detail-row">
-                        <span>Nüfus</span>
-                        <strong id="countryPopulation">—</strong>
+                    <div>
+                        <span>Tur Geliri</span>
+                        <strong id="countryIncome">—</strong>
                     </div>
 
-                    <div class="country-detail-row">
-                        <span>Ekonomi</span>
-                        <strong id="countryGdp">—</strong>
+                    <div>
+                        <span>Sanayi</span>
+                        <strong id="countryIndustry">—</strong>
+                    </div>
+
+                    <div>
+                        <span>Ordu</span>
+                        <strong id="countryArmy">—</strong>
+                    </div>
+
+                    <div>
+                        <span>İstikrar</span>
+                        <strong id="countryStability">—</strong>
                     </div>
 
                 </div>
 
                 <button
                     id="startCountry"
-                    class="start-country-button"
+                    class="primary-action"
                     type="button"
                     disabled
                 >
@@ -257,6 +260,190 @@
         </div>
 
     </section>
+
+    <!-- OYUN EKRANI -->
+    <section
+        id="playScreen"
+        class="screen play-screen hidden"
+        aria-hidden="true"
+    >
+
+        <header class="play-header">
+
+            <div>
+
+                <p class="eyebrow">
+                    IMPERA • 1936
+                </p>
+
+                <h2 id="playCountryName">
+                    Ülke
+                </h2>
+
+            </div>
+
+            <button
+                id="quitGame"
+                class="ghost-button"
+                type="button"
+            >
+                Ana Menü
+            </button>
+
+        </header>
+
+        <div class="game-layout">
+
+            <main class="game-main">
+
+                <section class="game-stats">
+
+                    <article>
+                        <span>Tur</span>
+                        <strong id="statTurn">1</strong>
+                    </article>
+
+                    <article>
+                        <span>Hazine</span>
+                        <strong id="statTreasury">0</strong>
+                    </article>
+
+                    <article>
+                        <span>Net Gelir</span>
+                        <strong id="statIncome">+0</strong>
+                    </article>
+
+                    <article>
+                        <span>Sanayi</span>
+                        <strong id="statIndustry">0</strong>
+                    </article>
+
+                    <article>
+                        <span>Ordu</span>
+                        <strong id="statArmy">0</strong>
+                    </article>
+
+                    <article>
+                        <span>İstikrar</span>
+                        <strong id="statStability">0%</strong>
+                    </article>
+
+                </section>
+
+                <section class="action-panel">
+
+                    <h3>Devlet Kararları</h3>
+
+                    <div class="game-actions">
+
+                        <button
+                            id="buildIndustry"
+                            type="button"
+                        >
+                            <strong>Sanayi Kur</strong>
+                            <small>
+                                -60 hazine • +3 sanayi
+                            </small>
+                        </button>
+
+                        <button
+                            id="recruitArmy"
+                            type="button"
+                        >
+                            <strong>Asker Topla</strong>
+                            <small>
+                                -45 hazine • +5 ordu
+                            </small>
+                        </button>
+
+                        <button
+                            id="raiseTaxes"
+                            type="button"
+                        >
+                            <strong>Vergileri Artır</strong>
+                            <small>
+                                +40 hazine • -6 istikrar
+                            </small>
+                        </button>
+
+                        <button
+                            id="publicInvestment"
+                            type="button"
+                        >
+                            <strong>Halk Yatırımı</strong>
+                            <small>
+                                -35 hazine • +5 istikrar
+                            </small>
+                        </button>
+
+                    </div>
+
+                </section>
+
+                <section class="turn-panel">
+
+                    <div>
+
+                        <h3>Tur Raporu</h3>
+
+                        <p id="gameLog">
+                            Oyun başladı.
+                        </p>
+
+                    </div>
+
+                    <button
+                        id="endTurn"
+                        class="primary-action"
+                        type="button"
+                    >
+                        Turu Bitir
+                    </button>
+
+                </section>
+
+            </main>
+
+            <aside class="objective-panel">
+
+                <p class="eyebrow">
+                    HEDEF
+                </p>
+
+                <h3>
+                    20 tur hayatta kal
+                </h3>
+
+                <p>
+                    İstikrarı sıfıra düşürmeden ekonomini ve ordunu büyüt.
+                </p>
+
+                <div class="progress-track">
+
+                    <div
+                        id="turnProgress"
+                        class="progress-bar"
+                    ></div>
+
+                </div>
+
+                <p
+                    id="objectiveText"
+                    class="muted"
+                >
+                    1 / 20 tur
+                </p>
+
+            </aside>
+
+        </div>
+
+    </section>
+
+    <div
+        id="toast"
+        class="toast hidden"
+    ></div>
 
     <script src="js/script.js"></script>
 
