@@ -48,6 +48,100 @@
     let selectedScenario = null;
     let selectedCountry = null;
 
+    const countryNamesTR = {
+        TR: "Türkiye",
+        TUR: "Türkiye",
+        Turkey: "Türkiye",
+        turkey: "Türkiye",
+
+        DE: "Almanya",
+        DEU: "Almanya",
+        Germany: "Almanya",
+        germany: "Almanya",
+
+        FR: "Fransa",
+        FRA: "Fransa",
+        France: "Fransa",
+        france: "Fransa",
+
+        GB: "Birleşik Krallık",
+        GBR: "Birleşik Krallık",
+        UK: "Birleşik Krallık",
+
+        IT: "İtalya",
+        ITA: "İtalya",
+        Italy: "İtalya",
+        italy: "İtalya",
+
+        ES: "İspanya",
+        ESP: "İspanya",
+        Spain: "İspanya",
+        spain: "İspanya",
+
+        US: "Amerika Birleşik Devletleri",
+        USA: "Amerika Birleşik Devletleri",
+
+        RU: "Rusya",
+        RUS: "Rusya",
+        Russia: "Rusya",
+        russia: "Rusya",
+
+        CN: "Çin",
+        CHN: "Çin",
+        China: "Çin",
+        china: "Çin",
+
+        JP: "Japonya",
+        JPN: "Japonya",
+        Japan: "Japonya",
+        japan: "Japonya",
+
+        GR: "Yunanistan",
+        GRC: "Yunanistan",
+
+        IR: "İran",
+        IRN: "İran",
+
+        IQ: "Irak",
+        IRQ: "Irak",
+
+        SY: "Suriye",
+        SYR: "Suriye",
+
+        BG: "Bulgaristan",
+        BGR: "Bulgaristan",
+
+        RO: "Romanya",
+        ROU: "Romanya",
+
+        PL: "Polonya",
+        POL: "Polonya",
+
+        UA: "Ukrayna",
+        UKR: "Ukrayna",
+
+        CA: "Kanada",
+        CAN: "Kanada",
+
+        BR: "Brezilya",
+        BRA: "Brezilya",
+
+        AR: "Arjantin",
+        ARG: "Arjantin",
+
+        AU: "Avustralya",
+        AUS: "Avustralya",
+
+        IN: "Hindistan",
+        IND: "Hindistan",
+
+        EG: "Mısır",
+        EGY: "Mısır",
+
+        SA: "Suudi Arabistan",
+        SAU: "Suudi Arabistan"
+    };
+
     function openModal() {
         if (!modal) return;
 
@@ -158,14 +252,57 @@
         return `$${new Intl.NumberFormat("tr-TR").format(number)} milyon`;
     }
 
-    function selectCountry(detail) {
-        if (!detail || !detail.name) return;
+    function getTurkishCountryName(detail) {
+        const possibleKeys = [
+            detail.iso,
+            detail.name,
+            detail.id
+        ];
 
-        selectedCountry = detail;
+        for (const key of possibleKeys) {
+            if (!key) continue;
+
+            if (countryNamesTR[key]) {
+                return countryNamesTR[key];
+            }
+
+            const upperKey = String(key).toUpperCase();
+
+            if (countryNamesTR[upperKey]) {
+                return countryNamesTR[upperKey];
+            }
+        }
+
+        return detail.name || detail.id || "Bilinmeyen Ülke";
+    }
+
+    function selectCountry(detail) {
+        if (!detail) return;
+
+        const normalizedDetail = {
+            name: getTurkishCountryName(detail),
+            iso:
+                detail.iso ||
+                detail.code ||
+                detail.id ||
+                "—",
+            continent:
+                detail.continent ||
+                "Bilinmiyor",
+            population:
+                detail.population ||
+                0,
+            gdpMd:
+                detail.gdpMd ||
+                detail.gdp ||
+                0
+        };
+
+        selectedCountry = normalizedDetail;
 
         if (countryName) {
             countryName.textContent =
-                detail.name || "Bilinmeyen Ülke";
+                normalizedDetail.name;
         }
 
         if (countryCode) {
@@ -175,26 +312,159 @@
 
         if (countryIso) {
             countryIso.textContent =
-                detail.iso || "—";
+                normalizedDetail.iso;
         }
 
         if (countryContinent) {
             countryContinent.textContent =
-                detail.continent || "Bilinmiyor";
+                normalizedDetail.continent;
         }
 
         if (countryPopulation) {
             countryPopulation.textContent =
-                formatPopulation(detail.population);
+                formatPopulation(
+                    normalizedDetail.population
+                );
         }
 
         if (countryGdp) {
             countryGdp.textContent =
-                formatGdp(detail.gdpMd);
+                formatGdp(
+                    normalizedDetail.gdpMd
+                );
         }
 
         if (startCountryButton) {
             startCountryButton.disabled = false;
+        }
+    }
+
+    function createCountryDetail(country) {
+        return {
+            id:
+                country.id ||
+                "",
+
+            name:
+                country.dataset.name ||
+                country.dataset.country ||
+                country.getAttribute("aria-label") ||
+                country.getAttribute("name") ||
+                country.id ||
+                "Bilinmeyen Ülke",
+
+            iso:
+                country.dataset.iso ||
+                country.dataset.code ||
+                country.getAttribute("data-id") ||
+                country.id ||
+                "—",
+
+            continent:
+                country.dataset.continent ||
+                "Bilinmiyor",
+
+            population:
+                country.dataset.population ||
+                0,
+
+            gdpMd:
+                country.dataset.gdpMd ||
+                country.dataset.gdp ||
+                0
+        };
+    }
+
+    function connectCountryElements(svgDocument) {
+        const countries = svgDocument.querySelectorAll(
+            "[data-name], [data-country], [data-iso], path[id], polygon[id], g[id]"
+        );
+
+        console.log(
+            `${countries.length} harita bölgesi bulundu.`
+        );
+
+        countries.forEach((country) => {
+            if (country.dataset.imperaConnected === "true") {
+                return;
+            }
+
+            country.dataset.imperaConnected = "true";
+            country.style.cursor = "pointer";
+
+            country.addEventListener("click", (event) => {
+                event.stopPropagation();
+
+                const oldSelected =
+                    svgDocument.querySelectorAll(
+                        ".impera-selected-country"
+                    );
+
+                oldSelected.forEach((item) => {
+                    item.classList.remove(
+                        "impera-selected-country"
+                    );
+                });
+
+                country.classList.add(
+                    "impera-selected-country"
+                );
+
+                const detail =
+                    createCountryDetail(country);
+
+                selectCountry(detail);
+            });
+        });
+
+        let style =
+            svgDocument.getElementById(
+                "impera-selection-style"
+            );
+
+        if (!style) {
+            style =
+                svgDocument.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    "style"
+                );
+
+            style.id =
+                "impera-selection-style";
+
+            style.textContent = `
+                [data-name],
+                [data-country],
+                [data-iso],
+                path[id],
+                polygon[id],
+                g[id] {
+                    cursor: pointer;
+                    transition:
+                        filter 0.18s ease,
+                        opacity 0.18s ease;
+                }
+
+                [data-name]:hover,
+                [data-country]:hover,
+                [data-iso]:hover,
+                path[id]:hover,
+                polygon[id]:hover {
+                    filter: brightness(1.3);
+                }
+
+                .impera-selected-country {
+                    filter:
+                        brightness(1.35)
+                        drop-shadow(
+                            0 0 5px #d7b35d
+                        );
+                }
+            `;
+
+            svgDocument.documentElement.appendChild(
+                style
+            );
         }
     }
 
@@ -213,22 +483,21 @@
 
         const message = event.data;
 
-        if (!message || typeof message !== "object") {
-            return;
-        }
-
         if (
-            message.type !== "impera-country-selected" &&
-            message.type !== "country-selected"
+            !message ||
+            typeof message !== "object"
         ) {
             return;
         }
 
-        selectCountry(
+        const detail =
             message.detail ||
             message.country ||
-            message.payload
-        );
+            message.payload;
+
+        if (!detail) return;
+
+        selectCountry(detail);
     }
 
     function connectToMap() {
@@ -239,24 +508,37 @@
                 const svgDocument =
                     worldMap.contentDocument;
 
-                if (!svgDocument) return;
+                if (!svgDocument) {
+                    console.warn(
+                        "SVG belgesi bulunamadı."
+                    );
+                    return;
+                }
+
+                connectCountryElements(
+                    svgDocument
+                );
 
                 svgDocument.addEventListener(
                     "impera-country-selected",
                     (event) => {
-                        selectCountry(event.detail);
+                        selectCountry(
+                            event.detail
+                        );
                     }
                 );
 
                 svgDocument.addEventListener(
                     "country-selected",
                     (event) => {
-                        selectCountry(event.detail);
+                        selectCountry(
+                            event.detail
+                        );
                     }
                 );
             } catch (error) {
-                console.warn(
-                    "Harita içeriğine doğrudan erişilemedi.",
+                console.error(
+                    "Dünya haritasına bağlanılamadı:",
                     error
                 );
             }
@@ -342,12 +624,8 @@
             () => {
                 if (!selectedCountry) return;
 
-                const country =
-                    selectedCountry.name ||
-                    "Seçilen ülke";
-
                 alert(
-                    `${country} ile ${selectedScenario} senaryosu başlatılıyor.`
+                    `${selectedCountry.name} ile ${selectedScenario} senaryosu başlatılıyor.`
                 );
             }
         );
