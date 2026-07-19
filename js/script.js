@@ -1,33 +1,19 @@
 (() => {
     "use strict";
 
-    const menuScreen = document.getElementById("menuScreen");
-    const worldScreen = document.getElementById("worldScreen");
+    const getElement = (id) => {
+        return document.getElementById(id);
+    };
 
-    const newGameButton = document.getElementById("newGame");
-    const continueButton = document.getElementById("continueGame");
-    const settingsButton = document.getElementById("settings");
-    const creditsButton = document.getElementById("credits");
+    const menuScreen = getElement("menuScreen");
+    const worldScreen = getElement("worldScreen");
+    const playScreen = getElement("playScreen");
 
-    const modal = document.getElementById("gameModal");
-    const closeModalButton = document.getElementById("closeModal");
-    const scenarioButtons = document.querySelectorAll(".scenario-card");
+    const gameModal = getElement("gameModal");
+    const worldMap = getElement("worldMap");
 
-    const backToMenuButton = document.getElementById("backToMenu");
-    const selectedScenarioText = document.getElementById("selectedScenario");
-    const worldMap = document.getElementById("worldMap");
-
-    const countryName = document.getElementById("countryName");
-    const countryCode = document.getElementById("countryCode");
-    const countryIso = document.getElementById("countryIso");
-    const countryContinent = document.getElementById("countryContinent");
-    const countryPopulation = document.getElementById("countryPopulation");
-    const countryGdp = document.getElementById("countryGdp");
-    const startCountryButton = document.getElementById("startCountry");
-
-    let selectedScenario = null;
-    let selectedCountry = null;
-    let gameState = null;
+    const startCountryButton =
+        getElement("startCountry");
 
     const countryData = {
         TR: {
@@ -36,7 +22,6 @@
             income: 22,
             industry: 28,
             army: 42,
-            population: 16,
             stability: 72
         },
 
@@ -46,7 +31,6 @@
             income: 95,
             industry: 180,
             army: 180,
-            population: 68,
             stability: 75
         },
 
@@ -56,7 +40,6 @@
             income: 80,
             industry: 145,
             army: 135,
-            population: 42,
             stability: 70
         },
 
@@ -66,7 +49,6 @@
             income: 100,
             industry: 170,
             army: 150,
-            population: 47,
             stability: 80
         },
 
@@ -76,7 +58,6 @@
             income: 55,
             industry: 90,
             army: 100,
-            population: 44,
             stability: 65
         },
 
@@ -86,7 +67,6 @@
             income: 120,
             industry: 220,
             army: 140,
-            population: 132,
             stability: 85
         },
 
@@ -96,7 +76,6 @@
             income: 70,
             industry: 140,
             army: 260,
-            population: 170,
             stability: 60
         },
 
@@ -106,7 +85,6 @@
             income: 65,
             industry: 120,
             army: 130,
-            population: 70,
             stability: 75
         },
 
@@ -116,7 +94,6 @@
             income: 35,
             industry: 55,
             army: 160,
-            population: 530,
             stability: 45
         },
 
@@ -126,664 +103,980 @@
             income: 38,
             industry: 62,
             army: 75,
-            population: 25,
             stability: 50
         }
     };
 
     const countryAliases = {
         TUR: "TR",
-        Turkey: "TR",
-        turkey: "TR",
+        TURKEY: "TR",
+        TÜRKİYE: "TR",
 
         DEU: "DE",
-        Germany: "DE",
-        germany: "DE",
+        GERMANY: "DE",
+        ALMANYA: "DE",
 
         FRA: "FR",
-        France: "FR",
-        france: "FR",
+        FRANCE: "FR",
+        FRANSA: "FR",
 
         GBR: "GB",
         UK: "GB",
+        "UNITED KINGDOM": "GB",
 
         ITA: "IT",
-        Italy: "IT",
-        italy: "IT",
+        ITALY: "IT",
+        İTALYA: "IT",
 
         USA: "US",
+        AMERICA: "US",
+        ABD: "US",
 
         RUS: "RU",
-        Russia: "RU",
-        russia: "RU",
+        RUSSIA: "RU",
+        SSCB: "RU",
+        "SOVIET UNION": "RU",
 
         JPN: "JP",
-        Japan: "JP",
-        japan: "JP",
+        JAPAN: "JP",
+        JAPONYA: "JP",
 
         CHN: "CN",
-        China: "CN",
-        china: "CN",
+        CHINA: "CN",
+        ÇİN: "CN",
 
         ESP: "ES",
-        Spain: "ES",
-        spain: "ES"
+        SPAIN: "ES",
+        İSPANYA: "ES"
     };
 
-    function openModal() {
-        if (!modal) return;
+    let selectedCountryCode = null;
 
-        modal.classList.remove("hidden");
-        modal.setAttribute("aria-hidden", "false");
-    }
+    let gameState = null;
 
-    function closeModal() {
-        if (!modal) return;
+    let toastTimer = null;
 
-        modal.classList.add("hidden");
-        modal.setAttribute("aria-hidden", "true");
-    }
-
-    function showMenu() {
-        closeModal();
-
-        if (worldScreen) {
-            worldScreen.classList.add("hidden");
-            worldScreen.setAttribute("aria-hidden", "true");
+    function normalizeCountryCode(value) {
+        if (!value) {
+            return null;
         }
 
-        if (menuScreen) {
-            menuScreen.classList.remove("hidden");
-        }
-    }
+        const rawValue =
+            String(value).trim();
 
-    function showWorldScreen(scenario) {
-        selectedScenario = scenario;
-        selectedCountry = null;
+        const upperValue =
+            rawValue.toLocaleUpperCase("tr-TR");
 
-        closeModal();
-
-        if (menuScreen) {
-            menuScreen.classList.add("hidden");
+        if (countryData[rawValue]) {
+            return rawValue;
         }
 
-        if (worldScreen) {
-            worldScreen.classList.remove("hidden");
-            worldScreen.setAttribute("aria-hidden", "false");
+        if (countryData[upperValue]) {
+            return upperValue;
         }
 
-        updateScenarioText(scenario);
-        resetCountryPanel();
-    }
-
-    function updateScenarioText(scenario) {
-        if (!selectedScenarioText) return;
-
-        const scenarioNames = {
-            "1936": "1936 — Savaşın Eşiğinde",
-            "1914": "1914 — Büyük Savaş",
-            modern: "Günümüz — Yeni Dünya Düzeni"
-        };
-
-        selectedScenarioText.textContent =
-            `Senaryo: ${scenarioNames[scenario] || scenario}`;
-    }
-
-    function resetCountryPanel() {
-        if (countryName) {
-            countryName.textContent = "Bir ülke seç";
+        if (countryAliases[upperValue]) {
+            return countryAliases[upperValue];
         }
 
-        if (countryCode) {
-            countryCode.textContent = "Haritadaki ülkelere dokun.";
-        }
-
-        if (countryIso) {
-            countryIso.textContent = "—";
-        }
-
-        if (countryContinent) {
-            countryContinent.textContent = "—";
-        }
-
-        if (countryPopulation) {
-            countryPopulation.textContent = "—";
-        }
-
-        if (countryGdp) {
-            countryGdp.textContent = "—";
-        }
-
-        if (startCountryButton) {
-            startCountryButton.disabled = true;
-        }
-    }
-
-    function normalizeCountryCode(detail) {
-        const possibleValues = [
-            detail.iso,
-            detail.code,
-            detail.id,
-            detail.name
-        ];
-
-        for (const value of possibleValues) {
-            if (!value) continue;
-
-            const cleanValue = String(value).trim();
-
-            if (countryData[cleanValue]) {
-                return cleanValue;
-            }
-
-            if (countryAliases[cleanValue]) {
-                return countryAliases[cleanValue];
-            }
-
-            const upperValue = cleanValue.toUpperCase();
-
-            if (countryData[upperValue]) {
-                return upperValue;
-            }
-
-            if (countryAliases[upperValue]) {
-                return countryAliases[upperValue];
-            }
+        if (countryAliases[rawValue.toUpperCase()]) {
+            return countryAliases[
+                rawValue.toUpperCase()
+            ];
         }
 
         return null;
     }
 
-    function selectCountry(detail) {
-        if (!detail) return;
+    function showOnlyScreen(activeScreen) {
+        const screens = [
+            menuScreen,
+            worldScreen,
+            playScreen
+        ];
 
-        const code = normalizeCountryCode(detail);
+        screens.forEach((screen) => {
+            const isActive =
+                screen === activeScreen;
+
+            screen.classList.toggle(
+                "hidden",
+                !isActive
+            );
+
+            screen.setAttribute(
+                "aria-hidden",
+                String(!isActive)
+            );
+        });
+    }
+
+    function openModal() {
+        gameModal.classList.remove("hidden");
+
+        gameModal.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+    }
+
+    function closeModal() {
+        gameModal.classList.add("hidden");
+
+        gameModal.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+    }
+
+    function showToast(message) {
+        const toast =
+            getElement("toast");
+
+        toast.textContent = message;
+
+        toast.classList.remove("hidden");
+
+        clearTimeout(toastTimer);
+
+        toastTimer = setTimeout(() => {
+            toast.classList.add("hidden");
+        }, 2600);
+    }
+
+    function resetCountryPanel() {
+        selectedCountryCode = null;
+
+        getElement("countryName").textContent =
+            "Bir ülke seç";
+
+        getElement("countryMessage").textContent =
+            "Haritadaki bir ülkeye dokun.";
+
+        const resetIds = [
+            "countryIso",
+            "countryTreasury",
+            "countryIncome",
+            "countryIndustry",
+            "countryArmy",
+            "countryStability"
+        ];
+
+        resetIds.forEach((id) => {
+            getElement(id).textContent = "—";
+        });
+
+        startCountryButton.disabled = true;
+    }
+
+    function selectCountry(input) {
+        const detail =
+            input && input.detail
+                ? input.detail
+                : input || {};
+
+        const possibleCode =
+            detail.iso ||
+            detail.code ||
+            detail.id ||
+            detail.name ||
+            detail.country;
+
+        const code =
+            normalizeCountryCode(possibleCode);
 
         if (!code || !countryData[code]) {
-            selectedCountry = {
-                code: detail.iso || detail.id || "—",
-                name: detail.name || detail.id || "Bilinmeyen Ülke",
-                supported: false
-            };
+            const shownName =
+                detail.name ||
+                detail.id ||
+                "Bu ülke";
 
-            if (countryName) {
-                countryName.textContent = selectedCountry.name;
-            }
+            getElement("countryName").textContent =
+                shownName;
 
-            if (countryCode) {
-                countryCode.textContent =
-                    "Bu ülke için başlangıç verileri henüz eklenmedi.";
-            }
+            getElement("countryMessage").textContent =
+                "Bu ülkenin verileri henüz eklenmedi.";
 
-            if (countryIso) {
-                countryIso.textContent = selectedCountry.code;
-            }
-
-            if (countryContinent) {
-                countryContinent.textContent = "Bilinmiyor";
-            }
-
-            if (countryPopulation) {
-                countryPopulation.textContent = "—";
-            }
-
-            if (countryGdp) {
-                countryGdp.textContent = "—";
-            }
-
-            if (startCountryButton) {
-                startCountryButton.disabled = true;
-            }
+            startCountryButton.disabled = true;
 
             return;
         }
 
-        const data = countryData[code];
+        selectedCountryCode = code;
 
-        selectedCountry = {
-            code,
-            name: data.name,
-            supported: true
-        };
+        const data =
+            countryData[code];
 
-        if (countryName) {
-            countryName.textContent = data.name;
-        }
+        getElement("countryName").textContent =
+            data.name;
 
-        if (countryCode) {
-            countryCode.textContent =
-                `Başlangıç hazinesi: ${data.treasury} • Tur geliri: +${data.income}`;
-        }
+        getElement("countryMessage").textContent =
+            "Bu ülke oynanabilir.";
 
-        if (countryIso) {
-            countryIso.textContent = code;
-        }
+        getElement("countryIso").textContent =
+            code;
 
-        if (countryContinent) {
-            countryContinent.textContent = "Oynanabilir";
-        }
+        getElement("countryTreasury").textContent =
+            data.treasury;
 
-        if (countryPopulation) {
-            countryPopulation.textContent = `${data.population} milyon`;
-        }
+        getElement("countryIncome").textContent =
+            `+${data.income}`;
 
-        if (countryGdp) {
-            countryGdp.textContent = `Sanayi: ${data.industry}`;
-        }
+        getElement("countryIndustry").textContent =
+            data.industry;
 
-        if (startCountryButton) {
-            startCountryButton.disabled = false;
-        }
+        getElement("countryArmy").textContent =
+            data.army;
+
+        getElement("countryStability").textContent =
+            `${data.stability}%`;
+
+        startCountryButton.disabled = false;
     }
 
-    function createCountryDetail(country) {
+    function createCountryDetail(element) {
         return {
-            id: country.id || "",
+            id:
+                element.id || "",
 
             name:
-                country.dataset.name ||
-                country.dataset.country ||
-                country.getAttribute("aria-label") ||
-                country.getAttribute("name") ||
-                country.id ||
-                "Bilinmeyen Ülke",
+                element.dataset.name ||
+                element.dataset.country ||
+                element.getAttribute(
+                    "aria-label"
+                ) ||
+                element.getAttribute("name") ||
+                element.id ||
+                "",
 
             iso:
-                country.dataset.iso ||
-                country.dataset.code ||
-                country.getAttribute("data-id") ||
-                country.id ||
-                "—"
+                element.dataset.iso ||
+                element.dataset.code ||
+                element.getAttribute(
+                    "data-id"
+                ) ||
+                element.id ||
+                ""
         };
     }
 
-    function connectCountryElements(svgDocument) {
-        const countries = svgDocument.querySelectorAll(
-            "[data-name], [data-country], [data-iso], path[id], polygon[id], g[id]"
+    function connectMap() {
+        if (!worldMap) {
+            return;
+        }
+
+        function attachMapEvents() {
+            try {
+                const svgDocument =
+                    worldMap.contentDocument;
+
+                if (!svgDocument) {
+                    return;
+                }
+
+                const countryElements =
+                    svgDocument.querySelectorAll(
+                        [
+                            "[data-iso]",
+                            "[data-code]",
+                            "[data-country]",
+                            "[data-name]",
+                            "path[id]",
+                            "polygon[id]",
+                            "g[id]"
+                        ].join(",")
+                    );
+
+                countryElements.forEach(
+                    (element) => {
+                        if (
+                            element.dataset
+                                .imperaConnected ===
+                            "true"
+                        ) {
+                            return;
+                        }
+
+                        element.dataset
+                            .imperaConnected =
+                            "true";
+
+                        element.style.cursor =
+                            "pointer";
+
+                        element.addEventListener(
+                            "click",
+                            (event) => {
+                                event.stopPropagation();
+
+                                svgDocument
+                                    .querySelectorAll(
+                                        ".impera-selected"
+                                    )
+                                    .forEach(
+                                        (selected) => {
+                                            selected
+                                                .classList
+                                                .remove(
+                                                    "impera-selected"
+                                                );
+                                        }
+                                    );
+
+                                element.classList.add(
+                                    "impera-selected"
+                                );
+
+                                selectCountry(
+                                    createCountryDetail(
+                                        element
+                                    )
+                                );
+                            }
+                        );
+                    }
+                );
+
+                if (
+                    !svgDocument.getElementById(
+                        "impera-selection-style"
+                    )
+                ) {
+                    const style =
+                        svgDocument.createElementNS(
+                            "http://www.w3.org/2000/svg",
+                            "style"
+                        );
+
+                    style.id =
+                        "impera-selection-style";
+
+                    style.textContent = `
+                        .impera-selected {
+                            filter:
+                                brightness(1.35)
+                                drop-shadow(
+                                    0 0 5px #efd58f
+                                ) !important;
+                        }
+                    `;
+
+                    svgDocument
+                        .documentElement
+                        .appendChild(style);
+                }
+            } catch (error) {
+                console.error(
+                    "Harita bağlantı hatası:",
+                    error
+                );
+            }
+        }
+
+        worldMap.addEventListener(
+            "load",
+            attachMapEvents
         );
 
-        countries.forEach((country) => {
-            if (country.dataset.imperaConnected === "true") {
-                return;
-            }
+        setTimeout(
+            attachMapEvents,
+            900
+        );
+    }
 
-            country.dataset.imperaConnected = "true";
-            country.style.cursor = "pointer";
+    function calculateNetIncome() {
+        if (!gameState) {
+            return 0;
+        }
 
-            country.addEventListener("click", (event) => {
-                event.stopPropagation();
-
-                svgDocument
-                    .querySelectorAll(".impera-selected-country")
-                    .forEach((item) => {
-                        item.classList.remove("impera-selected-country");
-                    });
-
-                country.classList.add("impera-selected-country");
-
-                selectCountry(createCountryDetail(country));
-            });
-        });
-
-        if (!svgDocument.getElementById("impera-selection-style")) {
-            const style = svgDocument.createElementNS(
-                "http://www.w3.org/2000/svg",
-                "style"
+        const industryBonus =
+            Math.floor(
+                gameState.industry * 0.12
             );
 
-            style.id = "impera-selection-style";
+        const armyMaintenance =
+            Math.floor(
+                gameState.army * 0.06
+            );
 
-            style.textContent = `
-                path[id],
-                polygon[id],
-                [data-country],
-                [data-iso] {
-                    cursor: pointer;
-                    transition: filter 0.18s ease;
-                }
+        const stabilityModifier =
+            Math.floor(
+                (
+                    gameState.stability - 50
+                ) / 10
+            );
 
-                path[id]:hover,
-                polygon[id]:hover,
-                [data-country]:hover,
-                [data-iso]:hover {
-                    filter: brightness(1.25);
-                }
-
-                .impera-selected-country {
-                    filter:
-                        brightness(1.35)
-                        drop-shadow(0 0 5px #d7b35d);
-                }
-            `;
-
-            svgDocument.documentElement.appendChild(style);
-        }
+        return Math.max(
+            1,
+            gameState.baseIncome +
+                industryBonus +
+                stabilityModifier -
+                armyMaintenance
+        );
     }
 
-    function connectToMap() {
-        if (!worldMap) return;
+    function renderGame() {
+        if (!gameState) {
+            return;
+        }
 
-        worldMap.addEventListener("load", () => {
-            try {
-                const svgDocument = worldMap.contentDocument;
+        getElement(
+            "playCountryName"
+        ).textContent =
+            gameState.name;
 
-                if (!svgDocument) return;
+        getElement(
+            "statTurn"
+        ).textContent =
+            gameState.turn;
 
-                connectCountryElements(svgDocument);
-            } catch (error) {
-                console.error("Haritaya bağlanılamadı:", error);
+        getElement(
+            "statTreasury"
+        ).textContent =
+            gameState.treasury;
+
+        getElement(
+            "statIncome"
+        ).textContent =
+            `+${calculateNetIncome()}`;
+
+        getElement(
+            "statIndustry"
+        ).textContent =
+            gameState.industry;
+
+        getElement(
+            "statArmy"
+        ).textContent =
+            gameState.army;
+
+        getElement(
+            "statStability"
+        ).textContent =
+            `${gameState.stability}%`;
+
+        const progress =
+            Math.min(
+                100,
+                (
+                    gameState.turn /
+                    20
+                ) * 100
+            );
+
+        getElement(
+            "turnProgress"
+        ).style.width =
+            `${progress}%`;
+
+        getElement(
+            "objectiveText"
+        ).textContent =
+            `${Math.min(
+                gameState.turn,
+                20
+            )} / 20 tur`;
+    }
+
+    function writeLog(message) {
+        getElement(
+            "gameLog"
+        ).textContent =
+            message;
+
+        showToast(message);
+    }
+
+    function saveGame() {
+        if (!gameState) {
+            return;
+        }
+
+        localStorage.setItem(
+            "imperaSaveV01",
+            JSON.stringify(gameState)
+        );
+    }
+
+    function loadGame() {
+        try {
+            const savedGame =
+                JSON.parse(
+                    localStorage.getItem(
+                        "imperaSaveV01"
+                    )
+                );
+
+            if (
+                !savedGame ||
+                !savedGame.name
+            ) {
+                throw new Error(
+                    "Kayıt bulunamadı"
+                );
             }
-        });
-    }
 
-    function createGameScreen() {
-        let gameScreen = document.getElementById("playScreen");
+            gameState =
+                savedGame;
 
-        if (gameScreen) {
-            return gameScreen;
+            showOnlyScreen(playScreen);
+
+            renderGame();
+
+            writeLog(
+                "Kayıtlı oyun yüklendi."
+            );
+        } catch (error) {
+            showToast(
+                "Henüz kayıtlı oyun bulunmuyor."
+            );
         }
-
-        gameScreen = document.createElement("section");
-        gameScreen.id = "playScreen";
-        gameScreen.className = "play-screen hidden";
-
-        gameScreen.innerHTML = `
-            <header class="play-header">
-                <div>
-                    <p class="eyebrow">IMPERA REMASTERED</p>
-                    <h2 id="playCountryName">Ülke</h2>
-                </div>
-
-                <button id="quitGame" type="button">
-                    Ana Menü
-                </button>
-            </header>
-
-            <div class="game-stats">
-                <div>
-                    <span>Tur</span>
-                    <strong id="statTurn">1</strong>
-                </div>
-
-                <div>
-                    <span>Hazine</span>
-                    <strong id="statTreasury">0</strong>
-                </div>
-
-                <div>
-                    <span>Tur Geliri</span>
-                    <strong id="statIncome">+0</strong>
-                </div>
-
-                <div>
-                    <span>Sanayi</span>
-                    <strong id="statIndustry">0</strong>
-                </div>
-
-                <div>
-                    <span>Ordu</span>
-                    <strong id="statArmy">0</strong>
-                </div>
-
-                <div>
-                    <span>İstikrar</span>
-                    <strong id="statStability">0%</strong>
-                </div>
-            </div>
-
-            <div class="game-actions">
-                <button id="buildIndustry" type="button">
-                    Sanayi Kur
-                    <small>-30 hazine</small>
-                </button>
-
-                <button id="recruitArmy" type="button">
-                    Asker Topla
-                    <small>-20 hazine</small>
-                </button>
-
-                <button id="raiseTaxes" type="button">
-                    Vergi Artır
-                    <small>+25 hazine, -5 istikrar</small>
-                </button>
-
-                <button id="endTurn" type="button">
-                    Turu Bitir
-                </button>
-            </div>
-
-            <div id="gameLog" class="game-log">
-                Oyun başladı.
-            </div>
-        `;
-
-        document.body.appendChild(gameScreen);
-
-        document
-            .getElementById("quitGame")
-            .addEventListener("click", () => {
-                gameScreen.classList.add("hidden");
-                showMenu();
-            });
-
-        document
-            .getElementById("buildIndustry")
-            .addEventListener("click", buildIndustry);
-
-        document
-            .getElementById("recruitArmy")
-            .addEventListener("click", recruitArmy);
-
-        document
-            .getElementById("raiseTaxes")
-            .addEventListener("click", raiseTaxes);
-
-        document
-            .getElementById("endTurn")
-            .addEventListener("click", endTurn);
-
-        return gameScreen;
     }
 
     function startGame() {
-        if (!selectedCountry || !selectedCountry.supported) {
+        if (
+            !selectedCountryCode ||
+            !countryData[
+                selectedCountryCode
+            ]
+        ) {
+            showToast(
+                "Önce oynanabilir bir ülke seç."
+            );
+
             return;
         }
 
-        const baseData = countryData[selectedCountry.code];
+        const country =
+            countryData[
+                selectedCountryCode
+            ];
 
         gameState = {
-            countryCode: selectedCountry.code,
-            countryName: baseData.name,
-            turn: 1,
-            treasury: baseData.treasury,
-            baseIncome: baseData.income,
-            industry: baseData.industry,
-            army: baseData.army,
-            population: baseData.population,
-            stability: baseData.stability
+            code:
+                selectedCountryCode,
+
+            name:
+                country.name,
+
+            turn:
+                1,
+
+            treasury:
+                country.treasury,
+
+            baseIncome:
+                country.income,
+
+            industry:
+                country.industry,
+
+            army:
+                country.army,
+
+            stability:
+                country.stability
         };
 
-        const gameScreen = createGameScreen();
+        showOnlyScreen(playScreen);
 
-        if (worldScreen) {
-            worldScreen.classList.add("hidden");
+        getElement(
+            "gameLog"
+        ).textContent =
+            `${gameState.name} ile oyun başladı.`;
+
+        renderGame();
+
+        saveGame();
+    }
+
+    function spendTreasury(
+        amount,
+        successMessage
+    ) {
+        if (
+            gameState.treasury <
+            amount
+        ) {
+            writeLog(
+                "Bu karar için yeterli hazine yok."
+            );
+
+            return false;
         }
 
-        gameScreen.classList.remove("hidden");
+        gameState.treasury -=
+            amount;
 
-        updateGameScreen();
-        addLog(`${gameState.countryName} ile oyun başladı.`);
-    }
-
-    function calculateIncome() {
-        const industryBonus = Math.floor(gameState.industry * 0.15);
-        const armyMaintenance = Math.floor(gameState.army * 0.08);
-
-        return Math.max(
-            0,
-            gameState.baseIncome + industryBonus - armyMaintenance
+        writeLog(
+            successMessage
         );
-    }
 
-    function updateGameScreen() {
-        if (!gameState) return;
-
-        document.getElementById("playCountryName").textContent =
-            gameState.countryName;
-
-        document.getElementById("statTurn").textContent =
-            gameState.turn;
-
-        document.getElementById("statTreasury").textContent =
-            gameState.treasury;
-
-        document.getElementById("statIncome").textContent =
-            `+${calculateIncome()}`;
-
-        document.getElementById("statIndustry").textContent =
-            gameState.industry;
-
-        document.getElementById("statArmy").textContent =
-            gameState.army;
-
-        document.getElementById("statStability").textContent =
-            `${gameState.stability}%`;
-    }
-
-    function addLog(message) {
-        const gameLog = document.getElementById("gameLog");
-
-        if (!gameLog) return;
-
-        gameLog.textContent = message;
+        return true;
     }
 
     function buildIndustry() {
-        if (!gameState) return;
-
-        if (gameState.treasury < 30) {
-            addLog("Sanayi kurmak için yeterli hazine yok.");
+        if (!gameState) {
             return;
         }
 
-        gameState.treasury -= 30;
-        gameState.industry += 1;
+        const success =
+            spendTreasury(
+                60,
+                "Yeni sanayi tesisleri kuruldu. Sanayi +3."
+            );
 
-        addLog("Yeni sanayi tesisi kuruldu.");
-        updateGameScreen();
+        if (!success) {
+            return;
+        }
+
+        gameState.industry += 3;
+
+        renderGame();
+
+        saveGame();
     }
 
     function recruitArmy() {
-        if (!gameState) return;
-
-        if (gameState.treasury < 20) {
-            addLog("Asker toplamak için yeterli hazine yok.");
+        if (!gameState) {
             return;
         }
 
-        gameState.treasury -= 20;
+        const success =
+            spendTreasury(
+                45,
+                "Yeni birlikler orduya katıldı. Ordu +5."
+            );
+
+        if (!success) {
+            return;
+        }
+
         gameState.army += 5;
 
-        addLog("Orduya 5 birlik eklendi.");
-        updateGameScreen();
+        renderGame();
+
+        saveGame();
     }
 
     function raiseTaxes() {
-        if (!gameState) return;
-
-        if (gameState.stability <= 5) {
-            addLog("İstikrar çok düşük. Vergi artırılamaz.");
+        if (!gameState) {
             return;
         }
 
-        gameState.treasury += 25;
-        gameState.stability -= 5;
+        if (
+            gameState.stability <=
+            6
+        ) {
+            writeLog(
+                "İstikrar çok düşük. Vergiler daha fazla artırılamaz."
+            );
 
-        addLog("Vergiler artırıldı. Hazine büyüdü, istikrar düştü.");
-        updateGameScreen();
+            return;
+        }
+
+        gameState.treasury += 40;
+
+        gameState.stability -= 6;
+
+        writeLog(
+            "Vergiler artırıldı. Hazine +40, istikrar -6."
+        );
+
+        renderGame();
+
+        saveGame();
+    }
+
+    function publicInvestment() {
+        if (!gameState) {
+            return;
+        }
+
+        if (
+            gameState.stability >=
+            100
+        ) {
+            writeLog(
+                "İstikrar zaten en yüksek seviyede."
+            );
+
+            return;
+        }
+
+        const success =
+            spendTreasury(
+                35,
+                "Halka yatırım yapıldı. İstikrar +5."
+            );
+
+        if (!success) {
+            return;
+        }
+
+        gameState.stability =
+            Math.min(
+                100,
+                gameState.stability + 5
+            );
+
+        renderGame();
+
+        saveGame();
     }
 
     function endTurn() {
-        if (!gameState) return;
-
-        const income = calculateIncome();
-
-        gameState.treasury += income;
-        gameState.turn += 1;
-
-        if (gameState.stability <= 0) {
-            alert("İstikrar çöktü. Oyun sona erdi.");
-            document.getElementById("playScreen").classList.add("hidden");
-            showMenu();
+        if (!gameState) {
             return;
         }
 
-        addLog(
-            `${gameState.turn}. tura geçildi. Hazineye ${income} eklendi.`
+        const income =
+            calculateNetIncome();
+
+        gameState.treasury +=
+            income;
+
+        gameState.turn += 1;
+
+        if (
+            gameState.army >
+            gameState.industry *
+                1.25
+        ) {
+            gameState.stability =
+                Math.max(
+                    0,
+                    gameState.stability - 2
+                );
+        } else if (
+            gameState.stability < 100 &&
+            gameState.turn % 3 === 0
+        ) {
+            gameState.stability += 1;
+        }
+
+        if (
+            gameState.stability <=
+            0
+        ) {
+            localStorage.removeItem(
+                "imperaSaveV01"
+            );
+
+            alert(
+                "İstikrar çöktü. Hükûmet devrildi ve oyun sona erdi."
+            );
+
+            gameState = null;
+
+            showOnlyScreen(
+                menuScreen
+            );
+
+            return;
+        }
+
+        renderGame();
+
+        saveGame();
+
+        if (
+            gameState.turn >=
+            20
+        ) {
+            alert(
+                `Zafer! ${gameState.name} ile 20 tur boyunca yönetimde kaldın.`
+            );
+
+            return;
+        }
+
+        writeLog(
+            `${gameState.turn}. tura geçildi. Hazineye ${income} gelir eklendi.`
         );
-
-        updateGameScreen();
     }
 
-    if (newGameButton) {
-        newGameButton.addEventListener("click", openModal);
-    }
+    getElement(
+        "newGame"
+    ).addEventListener(
+        "click",
+        openModal
+    );
 
-    if (closeModalButton) {
-        closeModalButton.addEventListener("click", closeModal);
-    }
+    getElement(
+        "closeModal"
+    ).addEventListener(
+        "click",
+        closeModal
+    );
 
-    if (backToMenuButton) {
-        backToMenuButton.addEventListener("click", showMenu);
-    }
+    getElement(
+        "backToMenu"
+    ).addEventListener(
+        "click",
+        () => {
+            showOnlyScreen(
+                menuScreen
+            );
+        }
+    );
 
-    if (continueButton) {
-        continueButton.addEventListener("click", () => {
-            alert("Henüz kayıtlı oyun bulunmuyor.");
+    getElement(
+        "quitGame"
+    ).addEventListener(
+        "click",
+        () => {
+            showOnlyScreen(
+                menuScreen
+            );
+        }
+    );
+
+    getElement(
+        "continueGame"
+    ).addEventListener(
+        "click",
+        loadGame
+    );
+
+    getElement(
+        "settings"
+    ).addEventListener(
+        "click",
+        () => {
+            showToast(
+                "Ayarlar sonraki sürümde eklenecek."
+            );
+        }
+    );
+
+    getElement(
+        "credits"
+    ).addEventListener(
+        "click",
+        () => {
+            showToast(
+                "IMPERA Remastered • Bilal"
+            );
+        }
+    );
+
+    document
+        .querySelectorAll(
+            ".scenario-card[data-scenario]"
+        )
+        .forEach((button) => {
+            button.addEventListener(
+                "click",
+                () => {
+                    closeModal();
+
+                    resetCountryPanel();
+
+                    getElement(
+                        "selectedScenario"
+                    ).textContent =
+                        "Senaryo: 1936 — Savaşın Eşiğinde";
+
+                    showOnlyScreen(
+                        worldScreen
+                    );
+                }
+            );
         });
-    }
 
-    if (settingsButton) {
-        settingsButton.addEventListener("click", () => {
-            alert("Ayarlar ekranı ileriki sürümde eklenecek.");
-        });
-    }
+    startCountryButton.addEventListener(
+        "click",
+        startGame
+    );
 
-    if (creditsButton) {
-        creditsButton.addEventListener("click", () => {
-            alert("IMPERA Remastered\nBilal'in strateji oyunu.");
-        });
-    }
+    getElement(
+        "buildIndustry"
+    ).addEventListener(
+        "click",
+        buildIndustry
+    );
 
-    scenarioButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-            const scenario = button.dataset.scenario;
+    getElement(
+        "recruitArmy"
+    ).addEventListener(
+        "click",
+        recruitArmy
+    );
 
-            if (!scenario) return;
+    getElement(
+        "raiseTaxes"
+    ).addEventListener(
+        "click",
+        raiseTaxes
+    );
 
-            showWorldScreen(scenario);
-        });
-    });
+    getElement(
+        "publicInvestment"
+    ).addEventListener(
+        "click",
+        publicInvestment
+    );
 
-    if (startCountryButton) {
-        startCountryButton.addEventListener("click", startGame);
-    }
+    getElement(
+        "endTurn"
+    ).addEventListener(
+        "click",
+        endTurn
+    );
 
-    if (modal) {
-        modal.addEventListener("click", (event) => {
-            if (event.target === modal) {
+    gameModal.addEventListener(
+        "click",
+        (event) => {
+            if (
+                event.target ===
+                gameModal
+            ) {
                 closeModal();
             }
-        });
-    }
-
-    document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
-            closeModal();
         }
-    });
+    );
 
-    connectToMap();
-    showMenu();
+    document.addEventListener(
+        "keydown",
+        (event) => {
+            if (
+                event.key ===
+                "Escape"
+            ) {
+                closeModal();
+            }
+        }
+    );
+
+    const countryEvents = [
+        "countrySelected",
+        "imperaCountrySelected",
+        "selectCountry"
+    ];
+
+    countryEvents.forEach(
+        (eventName) => {
+            window.addEventListener(
+                eventName,
+                selectCountry
+            );
+
+            document.addEventListener(
+                eventName,
+                selectCountry
+            );
+        }
+    );
+
+    window.selectCountry =
+        selectCountry;
+
+    connectMap();
+
+    resetCountryPanel();
+
+    showOnlyScreen(
+        menuScreen
+    );
 })();
